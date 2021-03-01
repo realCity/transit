@@ -51,11 +51,11 @@ Fields labeled as **experimental** are subject to change and not yet formally ad
                 *   [ScheduleRelationship](#enum-schedulerelationship)
                 *   [StopTimeProperties](#message-stoptimeproperties)
             *   [TripProperties](#message-tripproperties)
-            *   [WheelchairAccessible](#enum-wheelchairaccessible)
         *   [VehiclePosition](#message-vehicleposition)
             *   [TripDescriptor](#message-tripdescriptor)
                 *   [ScheduleRelationship](#enum-schedulerelationship-1)
             *   [VehicleDescriptor](#message-vehicledescriptor)
+                *   [WheelchairAccessible](#enum-wheelchairaccessible)
             *   [Position](#message-position)
             *   [VehicleStopStatus](#enum-vehiclestopstatus)
             *   [CongestionLevel](#enum-congestionlevel)
@@ -154,7 +154,6 @@ Note that the update can describe a trip that has already completed.To this end,
 | **timestamp** | [uint64](https://developers.google.com/protocol-buffers/docs/proto#scalar) | Optional | One | Moment at which the vehicle's real-time progress was measured. In POSIX time (i.e., the number of seconds since January 1st 1970 00:00:00 UTC). |
 | **delay** | [int32](https://developers.google.com/protocol-buffers/docs/proto#scalar) | Optional | One | The current schedule deviation for the trip. Delay should only be specified when the prediction is given relative to some existing schedule in GTFS.<br>Delay (in seconds) can be positive (meaning that the vehicle is late) or negative (meaning that the vehicle is ahead of schedule). Delay of 0 means that the vehicle is exactly on time.<br>Delay information in StopTimeUpdates take precedent of trip-level delay information, such that trip-level delay is only propagated until the next stop along the trip with a StopTimeUpdate delay value specified.<br>Feed providers are strongly encouraged to provide a TripUpdate.timestamp value indicating when the delay value was last updated, in order to evaluate the freshness of the data.<br>**Caution:** this field is still **experimental**, and subject to change. It may be formally adopted in the future.|
 | **trip_properties** | [TripProperties](#message-tripproperties) | Optional | One | Provides the updated properties for the trip. <br>**Caution:** this message is still **experimental**, and subject to change. It may be formally adopted in the future. |
-| **wheelchair_accessible** | [WheelchairAccessible](#enum-wheelchairaccessible) | Optional | One | If provided, can overwrite the *wheelchair_accessible* value from the static GTFS. |
 
 ## _message_ StopTimeEvent
 
@@ -229,19 +228,6 @@ Defines updated properties of the trip
 | **trip_id** | [string](https://developers.google.com/protocol-buffers/docs/proto#scalar) | Conditionally required | One |  Defines the identifier of a new trip that is a duplicate of an existing trip defined in (CSV) GTFS trips.txt but will start at a different service date and/or time (defined using `TripProperties.start_date` and `TripProperties.start_time`). See definition of `trips.trip_id` in (CSV) GTFS. Its value must be different than the ones used in the (CSV) GTFS. This field is required if `schedule_relationship` is `DUPLICATED`, otherwise this field must not be populated and will be ignored by consumers. <br>**Caution:** this field is still **experimental**, and subject to change. It may be formally adopted in the future. |
 | **start_date** | [string](https://developers.google.com/protocol-buffers/docs/proto#scalar) | Conditionally required | One | Service date on which the duplicated trip will be run. Must be provided in YYYYMMDD format. This field is required if `schedule_relationship` is `DUPLICATED`, otherwise this field must not be populated and will be ignored by consumers. <br>**Caution:** this field is still **experimental**, and subject to change. It may be formally adopted in the future. |
 | **start_time** | [string](https://developers.google.com/protocol-buffers/docs/proto#scalar) | Conditionally required | One | Defines the departure start time of the trip when it’s duplicated. See definition of `stop_times.departure_time` in (CSV) GTFS. Scheduled arrival and departure times for the duplicated trip are calculated based on the offset between the original trip `departure_time` and this field. For example, if a GTFS trip has stop A with a `departure_time` of `10:00:00` and stop B with `departure_time` of `10:01:00`, and this field is populated with the value of `10:30:00`, stop B on the duplicated trip will have a scheduled `departure_time` of `10:31:00`. Real-time prediction `delay` values are applied to this calculated schedule time to determine the predicted time. For example, if a departure `delay` of `30` is provided for stop B, then the predicted departure time is `10:31:30`. Real-time prediction `time` values do not have any offset applied to them and indicate the predicted time as provided.  For example, if a departure `time` representing 10:31:30 is provided for stop B, then the predicted departure time is `10:31:30`.This field is required if `schedule_relationship` is `DUPLICATED`, otherwise this field must not be populated and will be ignored by consumers. <br>**Caution:** this field is still **experimental**, and subject to change. It may be formally adopted in the future. |
-
-## _enum_ WheelchairAccessible
-
-If a particuliar trip is accessible to wheelchair. When available, this value should overwrite the _wheelchair_accessible_ value from the static GTFS. 
-
-#### Values
-
-| _**Value**_ | _**Comment**_ |
-|-------------|---------------|
-| **NO_VALUE** | The trip doesn't have information about wheelchair accessibility. This is the **default** behavior. If the static GTFS contains a _wheelchair_accessible_ value, it won't be overwritten. |
-| **UNKNOWN** | The trip has no accessibility value present. This value will overwrite the value from the GTFS.  |
-| **WHEELCHAIR_ACCESSIBLE** | The trip is wheelchair accessible. This value will overwrite the value from the GTFS. |
-| **WHEELCHAIR_INACCESSIBLE** | The trip is **not** wheelchair accessible. This value will overwrite the value from the GTFS. |
 
 ## _message_ VehiclePosition
 
@@ -477,6 +463,20 @@ Identification information for the vehicle performing the trip.
 | **id** | [string](https://developers.google.com/protocol-buffers/docs/proto#scalar) | Optional | One | Internal system identification of the vehicle. Should be **unique** per vehicle, and is used for tracking the vehicle as it proceeds through the system. This id should not be made visible to the end-user; for that purpose use the **label** field |
 | **label** | [string](https://developers.google.com/protocol-buffers/docs/proto#scalar) | Optional | One | User visible label, i.e., something that must be shown to the passenger to help identify the correct vehicle. |
 | **license_plate** | [string](https://developers.google.com/protocol-buffers/docs/proto#scalar) | Optional | One | The license plate of the vehicle. |
+| **wheelchair_accessible** | [WheelchairAccessible](#enum-wheelchairaccessible) | Optional | One | If provided, can overwrite the *wheelchair_accessible* value from the static GTFS. |
+
+## _enum_ WheelchairAccessible
+
+If a particuliar trip is accessible to wheelchair. When available, this value should overwrite the _wheelchair_accessible_ value from the static GTFS.
+
+#### Values
+
+| _**Value**_ | _**Comment**_ |
+|-------------|---------------|
+| **NO_VALUE** | The trip doesn't have information about wheelchair accessibility. This is the **default** behavior. If the static GTFS contains a _wheelchair_accessible_ value, it won't be overwritten. |
+| **UNKNOWN** | The trip has no accessibility value present. This value will overwrite the value from the GTFS.  |
+| **WHEELCHAIR_ACCESSIBLE** | The trip is wheelchair accessible. This value will overwrite the value from the GTFS. |
+| **WHEELCHAIR_INACCESSIBLE** | The trip is **not** wheelchair accessible. This value will overwrite the value from the GTFS. |
 
 ## _message_ EntitySelector
 
